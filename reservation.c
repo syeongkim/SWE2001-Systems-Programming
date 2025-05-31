@@ -47,10 +47,10 @@ Node* createNode(long long int data) {
 	n->left = NULL;
 	n->right = NULL;
 	n->reservationId = data;
-	n->movieId = NULL;
+	n->movieId = 0;
 	n->startTime = NULL;
 	n->date = NULL;
-	n->seatNumber = NULL;
+	n->seatNumber = 0;
 	n->color = 'R';
 
 	return n;
@@ -75,10 +75,12 @@ movieSchedule* createMovieSchedule() {
 	movieSchedule* n = (movieSchedule*)malloc(sizeof(movieSchedule));
 	RBTree* rbtree = createRBTree();
 
-	n->movieId = NULL;
+	n->movieId = 0;
 	n->startTime = NULL;
 	n->date = NULL;
 	n->reservationinfo = rbtree;
+
+	return n;
 }
 
 queue* createQueue() {
@@ -429,7 +431,7 @@ int findNode(RBTree* t, int value) {
 	return 0;
 }
 
-movieSchedule* findMovieId(int*** matrix, int movieId, char* startTime, char* date) {
+movieSchedule* findMovieId(movieSchedule*** matrix, int movieId, char* startTime, char* date) {
 	for (int i = 0; i < 5; i++) {
 		for (int d = 0; d < 7; d++) {
 			movieSchedule* temp = matrix[i][d];
@@ -546,14 +548,14 @@ long long int reservation(movieSchedule* movie, int movieId, char startTime[], c
 	long long int reservationId = 0;
 	// make reservation id ({month}{day}{start time}{movie id}{seat number})
 	int monthInt, dayInt;
-	if (sscanf_s(day, "%d/%d", &monthInt, &dayInt) == 2) {
+	if (sscanf(day, "%d/%d", &monthInt, &dayInt) == 2) {
 		reservationId = reservationId + monthInt * 10000000000 + dayInt * 100000000;
 	}
 
 	int startTimeInt;
 	char* startTimeStr;
 	char* nextToken = NULL;
-	startTimeStr = strtok_s(startTime, ":", &nextToken);
+	startTimeStr = strtok_r(startTime, ":", &nextToken);
 	if (startTimeStr != NULL) {
 		startTimeInt = atoi(startTimeStr);
 		reservationId = reservationId + startTimeInt * 1000000;
@@ -580,11 +582,11 @@ void reservationInput(movieSchedule*** matrix) {
 	int movieId, seatNumber, cnt;
 	char startTime[10], day[10];
 	printf("Enter Movie Id: ");
-	scanf_s("%d", &movieId);
+	scanf("%d", &movieId);
 	printf("Enter Day(MM/DD): ");
-	scanf_s("%9s", day, sizeof(day));
+	scanf("%9s", day);
 	printf("Enter Start Time(HH:MM): ");
-	scanf_s("%9s", startTime, sizeof(startTime));
+	scanf("%9s", startTime);
 
 
 	// print message if the movie which user finds doesn't exist
@@ -595,10 +597,10 @@ void reservationInput(movieSchedule*** matrix) {
 	// show seat layout and user enter seat number if the movie which user finds exists
 	else {
 		RBTree* reservationInfo = movie->reservationinfo;
-		printTree(reservationInfo->root, 0);
+		printTree(reservationInfo->root);
 		printSeatLayout(reservationInfo);
 		printf("Enter Seat Number: ");
-		scanf_s("%d", &seatNumber);
+		scanf("%d", &seatNumber);
 
 		if (findNode(movie->reservationinfo, seatNumber) == 1) {
 			printf("The seat is already reserved. Choose the menu again.\n");
@@ -606,7 +608,7 @@ void reservationInput(movieSchedule*** matrix) {
 		else {
 			// make a reservation
 			long long int reservationId = reservation(movie, movieId, startTime, day, seatNumber);
-			printTree(reservationInfo->root, 0);
+			printTree(reservationInfo->root);
 			// print reservation information and updated seat layout
 			printf("***Your reservation is completed successfully!***\n");
 			printf("Reservation Id: %lld\n", reservationId);
@@ -625,7 +627,7 @@ void reservationConfirmation(movieSchedule*** matrix) {
 
 	// user enters reservation id
 	printf("Enter your reservation Id: ");
-	scanf_s("%lld", &reservationId);
+	scanf("%lld", &reservationId);
 
 	// find detailed information about reservation by reservation id
 	seatNumber = reservationId % 1000;
@@ -636,8 +638,8 @@ void reservationConfirmation(movieSchedule*** matrix) {
 
 
 	char startTimeStr[10], dayStr[10];
-	sprintf_s(startTimeStr, sizeof(startTimeStr), "%d:00", startTime);
-	sprintf_s(dayStr, sizeof(dayStr), "%d/%02d", monthInt, dayInt);
+	sprintf(startTimeStr, "%d:00", startTime);
+	sprintf(dayStr, "%d/%02d", monthInt, dayInt);
 
 	// find movie which user made a reservation
 	movieSchedule* movie = findMovieId(matrix, movieId, startTimeStr, dayStr);
@@ -663,7 +665,7 @@ void reservationCancellation(movieSchedule* movie, long long int reservationId) 
 	// print reservation cancellation information and updates seat layout
 	printf("***Your reservation is cancelled successfully!***\n");
 	printf("Cancelled Reservation Id: %lld\n", reservationId);
-	printTree(movie->reservationinfo->root, 0);
+	printTree(movie->reservationinfo->root);
 	printSeatLayout(movie->reservationinfo);
 }
 
@@ -673,7 +675,7 @@ void reservationCancellationInput(movieSchedule*** matrix) {
 
 	// user enters reservation id
 	printf("Enter your reservation Id: ");
-	scanf_s("%lld", &reservationId);
+	scanf("%lld", &reservationId);
 
 	// find detailed information about reservation by reservation id
 	seatNumber = reservationId % 1000;
@@ -684,13 +686,13 @@ void reservationCancellationInput(movieSchedule*** matrix) {
 
 
 	char startTimeStr[10], dayStr[10];
-	sprintf_s(startTimeStr, sizeof(startTimeStr), "%d:00", startTime);
-	sprintf_s(dayStr, sizeof(dayStr), "%d/%02d", monthInt, dayInt);
+	sprintf(startTimeStr, "%d:00", startTime);
+	sprintf(dayStr, "%d/%02d", monthInt, dayInt);
 
 	// find movie which user made a reservation
 	movieSchedule* movie = findMovieId(matrix, movieId, startTimeStr, dayStr);
 
-	printTree(movie->reservationinfo->root, 0);
+	printTree(movie->reservationinfo->root);
 
 	// if reservation id is valid, cancel the reservation
 	if (findNode(movie->reservationinfo, seatNumber) == 1) {
@@ -715,7 +717,7 @@ void menuselect(movieSchedule*** matrix) {
 	printf("choose the menu: ");
 
 	// user enters the menu
-	scanf_s("%d", &menu);
+	scanf("%d", &menu);
 
 
 	switch (menu) {
@@ -757,9 +759,9 @@ int main() {
 			movieSchedule* movie = MovieSchedule[i][d];
 			int movieId = movie->movieId;
 			char startTime[10];
-			strcpy_s(startTime, sizeof(startTime), movie->startTime);
+			strcpy(startTime, movie->startTime);
 			char day[10];
-			strcpy_s(day, sizeof(day), movie->date);
+			strcpy(day, movie->date);
 			
 			// randomly generated seats of 30% of entire reservation
 			int A[MAX];
