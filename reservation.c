@@ -664,6 +664,14 @@ void groupReservation(movieSchedule* movie, int groupSize) {
 	printSeatLayout(movie->reservationinfo);
 }
 
+void collectReservedSeats(Node* root, Node* NIL, int* seats, int* count) {
+	if (root == NIL) return;
+
+	collectReservedSeats(root->left, NIL, seats, count);
+	seats[(*count)++] = root->seatNumber;
+	collectReservedSeats(root->right, NIL, seats, count);
+}
+
 int main() {
     movieSchedule*** MovieSchedule = makeMovieSchedule(5, 7);
 
@@ -703,12 +711,16 @@ int main() {
 
 				groupReservation(movie, j);
 
+				int reservedSeats[200];
+				int reservedCount = 0;
+
 				// 단체 예약 취소 (좌석 초기화)
-				for (int seatNum = 1; seatNum <= 200; seatNum++) {
-					if (findNode(movie->reservationinfo, seatNum)) {
-						long long int reservationId = findReservationId(movie->reservationinfo, seatNum);
-						reservationCancellation(movie, reservationId);
-					}
+				collectReservedSeats(movie->reservationinfo->root, movie->reservationinfo->NIL, reservedSeats, &reservedCount);
+
+				for (int i = 0; i < reservedCount; i++) {
+					int seatNum = reservedSeats[i];
+					long long int reservationId = findReservationId(movie->reservationinfo, seatNum);
+					reservationCancellation(movie, reservationId);
 				}
 			}
 
