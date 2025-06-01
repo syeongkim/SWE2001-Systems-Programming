@@ -435,6 +435,24 @@ int findNode(RBTree* t, int value) {
 	return 0;
 }
 
+long long int findReservationId(RBTree* t, int value) {
+	Node* current = t->root;
+
+	while (current != t->NIL) {
+		if (value == current->seatNumber) {
+			return current->reservationId;
+		}
+		else if (value < current->seatNumber) {
+			current = current->left;
+		}
+		else {
+			current = current->right;
+		}
+	}
+
+	return -1;
+}
+
 movieSchedule* findMovieId(movieSchedule*** matrix, int movieId, char* startTime, char* date) {
 	for (int i = 0; i < 5; i++) {
 		for (int d = 0; d < 7; d++) {
@@ -641,6 +659,8 @@ void groupReservation(movieSchedule* movie, int groupSize) {
             }
         }
     }
+
+	printSeatLayout(movie->reservationinfo);
 }
 
 int main() {
@@ -659,19 +679,20 @@ int main() {
 			char day[10];
 			strcpy(day, movie->date);
 			
-			// randomly generated seats of 30% of entire reservation
-			int A[MAX];
-			for (int n = 0; n < MAX; n++) {
-				A[n] = rand() % 200 + 1;
-				for (int j = 0; j < n; j++) {
-					if (A[n] == A[j]) {
-						n--;
-						break;
-					}
-				}
-			}
 
 			for (int j = 1; j <= 50; j++) {
+				// randomly generated seats of 30% of entire reservation
+				int A[MAX];
+				for (int n = 0; n < MAX; n++) {
+					A[n] = rand() % 200 + 1;
+					for (int j = 0; j < n; j++) {
+						if (A[n] == A[j]) {
+							n--;
+							break;
+						}
+					}
+				}
+
 				// make a reservation of 30% of entire reservation
 				for (int n = 0; n < MAX; n++) {
 					int seatNumber = A[n];
@@ -684,7 +705,7 @@ int main() {
 				// 단체 예약 취소 (좌석 초기화)
 				for (int seatNum = 1; seatNum <= 200; seatNum++) {
 					if (findNode(movie->reservationinfo, seatNum)) {
-						long long int reservationId = reservation(movie, movie->movieId, movie->startTime, movie->date, seatNum);
+						long long int reservationId = findReservationId(movie->reservationinfo, seatNum);
 						reservationCancellation(movie, reservationId);
 					}
 				}
