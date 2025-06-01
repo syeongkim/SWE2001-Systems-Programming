@@ -582,88 +582,6 @@ long long int reservation(movieSchedule* movie, int movieId, char startTime[], c
 	return reservationId;
 }
 
-void reservationInput(movieSchedule*** matrix) {
-	// user enters reservation information
-	int movieId, seatNumber, cnt;
-	char startTime[10], day[10];
-	printf("Enter Movie Id: ");
-	scanf("%d", &movieId);
-	printf("Enter Day(MM/DD): ");
-	scanf("%9s", day);
-	printf("Enter Start Time(HH:MM): ");
-	scanf("%9s", startTime);
-
-
-	// print message if the movie which user finds doesn't exist
-	movieSchedule* movie = findMovieId(matrix, movieId, startTime, day);
-	if (movie == NULL) {
-		printf("Movie doesn't exist");
-	}
-	// show seat layout and user enter seat number if the movie which user finds exists
-	else {
-		RBTree* reservationInfo = movie->reservationinfo;
-		printTree(reservationInfo->root);
-		printSeatLayout(reservationInfo);
-		printf("Enter Seat Number: ");
-		scanf("%d", &seatNumber);
-
-		if (findNode(movie->reservationinfo, seatNumber) == 1) {
-			printf("The seat is already reserved. Choose the menu again.\n");
-		}
-		else {
-			// make a reservation
-			long long int reservationId = reservation(movie, movieId, startTime, day, seatNumber);
-			printTree(reservationInfo->root);
-			// print reservation information and updated seat layout
-			printf("***Your reservation is completed successfully!***\n");
-			printf("Reservation Id: %lld\n", reservationId);
-			printf("Movie Id: %d\n", movieId);
-			printf("Day: %s\n", day);
-			printf("Start Time: %s\n", startTime);
-			printf("Seat Number: %d\n", seatNumber);
-			printSeatLayout(movie->reservationinfo);
-		}
-	}
-}
-
-void reservationConfirmation(movieSchedule*** matrix) {
-	long long int reservationId;
-	int monthInt, dayInt, startTime, movieId, seatNumber;
-
-	// user enters reservation id
-	printf("Enter your reservation Id: ");
-	scanf("%lld", &reservationId);
-
-	// find detailed information about reservation by reservation id
-	seatNumber = reservationId % 1000;
-	movieId = (reservationId % 1000000) / 1000;
-	startTime = (reservationId % 100000000) / 1000000;
-	dayInt = (reservationId % 10000000000) / 100000000;
-	monthInt = reservationId / 10000000000;
-
-
-	char startTimeStr[10], dayStr[10];
-	sprintf(startTimeStr, "%d:00", startTime);
-	sprintf(dayStr, "%d/%02d", monthInt, dayInt);
-
-	// find movie which user made a reservation
-	movieSchedule* movie = findMovieId(matrix, movieId, startTimeStr, dayStr);
-
-	// if reservation id is valid, print reservation information
-	if (findNode(movie->reservationinfo, seatNumber) == 1) {
-		printf("***Your Reservation Information***\n");
-		printf("Reservation Id: %lld\n", reservationId);
-		printf("Movie Id: %d\n", movieId);
-		printf("Day: %s\n", dayStr);
-		printf("Start Time: %s\n", startTimeStr);
-		printf("Seat Number: %d\n", seatNumber);
-	}
-	// if reservation id is invalid, print message
-	else {
-		printf("Your reservation Id doesn't exist.\n");
-	}
-}
-
 void reservationCancellation(movieSchedule* movie, long long int reservationId) {
 	// delete reservation node from rbtree
 	RBTreeDelete(movie->reservationinfo, reservationId);
@@ -672,41 +590,6 @@ void reservationCancellation(movieSchedule* movie, long long int reservationId) 
 	printf("Cancelled Reservation Id: %lld\n", reservationId);
 	printTree(movie->reservationinfo->root);
 	printSeatLayout(movie->reservationinfo);
-}
-
-void reservationCancellationInput(movieSchedule*** matrix) {
-	long long int reservationId;
-	int monthInt, dayInt, startTime, movieId, seatNumber;
-
-	// user enters reservation id
-	printf("Enter your reservation Id: ");
-	scanf("%lld", &reservationId);
-
-	// find detailed information about reservation by reservation id
-	seatNumber = reservationId % 1000;
-	movieId = (reservationId % 1000000) / 1000;
-	startTime = (reservationId % 100000000) / 1000000;
-	dayInt = (reservationId % 10000000000) / 100000000;
-	monthInt = reservationId / 10000000000;
-
-
-	char startTimeStr[10], dayStr[10];
-	sprintf(startTimeStr, "%d:00", startTime);
-	sprintf(dayStr, "%d/%02d", monthInt, dayInt);
-
-	// find movie which user made a reservation
-	movieSchedule* movie = findMovieId(matrix, movieId, startTimeStr, dayStr);
-
-	printTree(movie->reservationinfo->root);
-
-	// if reservation id is valid, cancel the reservation
-	if (findNode(movie->reservationinfo, seatNumber) == 1) {
-		reservationCancellation(movie, reservationId);
-	}
-	// if reservation id is invalid, print the message
-	else {
-		printf("Your reservation Id doesn't exist. Choose the menu again.\n");
-	}
 }
 
 void groupReservation(movieSchedule* movie, int groupSize) {
