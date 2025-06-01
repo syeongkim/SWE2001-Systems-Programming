@@ -671,7 +671,7 @@ int main() {
 				}
 			}
 
-			for (int j = 1; j <= 15; j++) {
+			for (int j = 1; j <= 50; j++) {
 				// make a reservation of 30% of entire reservation
 				for (int n = 0; n < MAX; n++) {
 					int seatNumber = A[n];
