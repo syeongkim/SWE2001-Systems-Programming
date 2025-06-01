@@ -447,17 +447,18 @@ movieSchedule* findMovieId(movieSchedule*** matrix, int movieId, char* startTime
 			}
 		}
 	}
+	return NULL;
 }
 
 int movieArr[5] = { 100, 200, 300, 400, 500 };
 char* dateArr[7] = { "12/03", "12/04", "12/05", "12/06", "12/07", "12/08", "12/09" };
 char* timeArr[5] = { "10:00", "12:00", "15:00", "18:00", "21:00" };
 
-int*** makeMovieSchedule(int num, int day) {
-	int*** movieList = (int***)malloc(sizeof(int**) * num);
+movieSchedule*** makeMovieSchedule(int num, int day) {
+	movieSchedule*** movieList = (movieSchedule***)malloc(sizeof(movieSchedule**) * num);
 
 	for (int i = 0; i < num; i++) {
-		movieList[i] = (int**)malloc(sizeof(int*) * day);
+		movieList[i] = (movieSchedule**)malloc(sizeof(movieSchedule*) * day);
 
 		// generate movie schedule randomly
 		for (int d = 0; d < day; d++) {
@@ -465,8 +466,8 @@ int*** makeMovieSchedule(int num, int day) {
 			// allocate movie id randomly
 			int idx = rand() % 5;
 			n->movieId = movieArr[idx];
-			n->startTime = timeArr[i];
-			n->date = dateArr[d];
+			n->startTime = strdup(timeArr[i]);
+			n->date = strdup(dateArr[d]);
 			RBTree* reservationTree = createRBTree();
 			n->reservationinfo = reservationTree;
 			movieList[i][d] = n;
@@ -704,6 +705,57 @@ void reservationCancellationInput(movieSchedule*** matrix) {
 	}
 }
 
+void groupReservation(movieSchedule* movie, int groupSize) {
+	int seats[200] = {0};
+
+    // 현재 예약된 좌석 체크
+    for (int i = 1; i <= 200; i++) {
+        if (findNode(movie->reservationinfo, i)) {
+            seats[i - 1] = 1;  // 1이면 예약됨
+        }
+    }
+
+    int found = 0;
+    // 한 줄(10석)씩 연속된 groupSize 찾기
+    for (int row = 0; row < 20; row++) {
+        int consecutive = 0;
+        for (int col = 0; col < 10; col++) {
+            int seatNum = row * 10 + col + 1;
+            if (seats[seatNum - 1] == 0) {
+                consecutive++;
+                if (consecutive == groupSize) {
+                    // 연속된 자리 발견, 예약
+                    for (int k = seatNum - groupSize + 1; k <= seatNum; k++) {
+                        long long int reservationId = reservation(
+                            movie, movie->movieId, movie->startTime, movie->date, k
+                        );
+                        printf("Group Reservation - Seat %d, Reservation ID: %lld\n", k, reservationId);
+                    }
+                    found = 1;
+                    break;
+                }
+            } else {
+                consecutive = 0;
+            }
+        }
+        if (found) break;
+    }
+
+    // 연속된 자리 없으면, 빈 자리에서 아무거나 groupSize만큼 예약
+    if (!found) {
+        int reserved = 0;
+        for (int i = 1; i <= 200 && reserved < groupSize; i++) {
+            if (seats[i - 1] == 0) {
+                long long int reservationId = reservation(
+                    movie, movie->movieId, movie->startTime, movie->date, i
+                );
+                printf("Group Reservation (Non-contiguous) - Seat %d, Reservation ID: %lld\n", i, reservationId);
+                reserved++;
+            }
+        }
+    }
+}
+
 void menuselect(movieSchedule*** matrix) {
 	int menu;
 
@@ -748,7 +800,7 @@ void menuselect(movieSchedule*** matrix) {
 }
 
 int main() {
-    int*** MovieSchedule = makeMovieSchedule(5, 7);
+    movieSchedule*** MovieSchedule = makeMovieSchedule(5, 7);
 
 	
 	srand((int)time(NULL));
@@ -785,8 +837,23 @@ int main() {
 	}
 	
 	// show menu to user
-    menuselect(MovieSchedule);
+    // menuselect(MovieSchedule);
 	
+	for (int i = 0; i < 5; i++) {
+        for (int d = 0; d < 7; d++) {
+            movieSchedule* movie = MovieSchedule[i][d];
 
+            // 30명 단체 예약
+            groupReservation(movie, 30);
+
+            // 단체 예약 취소 (좌석 초기화)
+            for (int seatNum = 1; seatNum <= 200; seatNum++) {
+                if (findNode(movie->reservationinfo, seatNum)) {
+                    long long int reservationId = reservation(movie, movie->movieId, movie->startTime, movie->date, seatNum);
+                    reservationCancellation(movie, reservationId);
+                }
+            }
+        }
+	}
     return 0;
 }
