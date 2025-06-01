@@ -421,10 +421,11 @@ int findNode(RBTree* t, int value) {
 	Node* current = t->root;
 
 	while (current != t->NIL) {
-		if (value == current->seatNumber) {
+		int currentSeatNumber = current -> seatNumber;
+		if (value == currentSeatNumber) {
 			return 1;
 		}
-		else if (value < current->seatNumber) {
+		else if (value < currentSeatNumber) {
 			current = current->left;
 		}
 		else {
