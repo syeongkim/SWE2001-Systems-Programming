@@ -760,49 +760,6 @@ void groupReservation(movieSchedule* movie, int groupSize) {
     }
 }
 
-void menuselect(movieSchedule*** matrix) {
-	int menu;
-
-	// show the menu
-	printf("-----Select Menu-----\n");
-	printf("1. Check Movie Schedule\n");
-	printf("2. Reservation\n");
-	printf("3. Reservation Cancellation\n");
-	printf("4. Reservation Confirmation\n");
-	printf("5. Finish\n");
-	printf("choose the menu: ");
-
-	// user enters the menu
-	scanf("%d", &menu);
-
-
-	switch (menu) {
-	case 1: // print movie schedule and seat layouts of each movie to user
-		printMovieSchedule(matrix, 5, 7);
-		menuselect(matrix);
-		break;
-	case 2: // user enters reservation information and make a reservation
-		printMovieSchedule(matrix, 5, 7);
-		reservationInput(matrix);
-		menuselect(matrix);
-		break;
-	case 3: // user enters reservation id and cancel the reservation
-		reservationCancellationInput(matrix);
-		menuselect(matrix);
-		break;
-	case 4: // user enters reservation id and show reservation information
-		reservationConfirmation(matrix);
-		menuselect(matrix);
-		break;
-	case 5: // finish the program
-		printf("Movie Reservation System is finished!");
-		break;
-	default: // user selects menu again
-		printf("Wrong input. Choose menu again.");
-		menuselect(matrix);
-	}
-}
-
 int main() {
     movieSchedule*** MovieSchedule = makeMovieSchedule(5, 7);
 
@@ -831,33 +788,28 @@ int main() {
 				}
 			}
 
-			// make a reservation of 30% of entire reservation
-			for (int n = 0; n < MAX; n++) {
-				int seatNumber = A[n];
-				//printf("%d", seatNumber);
-				long long int reservationId = reservation(movie, movieId, startTime, day, seatNumber);
+			for (int j = 1; j <= 15; j++) {
+				// make a reservation of 30% of entire reservation
+				for (int n = 0; n < MAX; n++) {
+					int seatNumber = A[n];
+					//printf("%d", seatNumber);
+					long long int reservationId = reservation(movie, movieId, startTime, day, seatNumber);
+				}
+
+				groupReservation(movie, j);
+
+				// 단체 예약 취소 (좌석 초기화)
+				for (int seatNum = 1; seatNum <= 200; seatNum++) {
+					if (findNode(movie->reservationinfo, seatNum)) {
+						long long int reservationId = reservation(movie, movie->movieId, movie->startTime, movie->date, seatNum);
+						reservationCancellation(movie, reservationId);
+					}
+				}
 			}
+
+			
 		}
 	}
 	
-	// show menu to user
-    // menuselect(MovieSchedule);
-	
-	for (int i = 0; i < 5; i++) {
-        for (int d = 0; d < 7; d++) {
-            movieSchedule* movie = MovieSchedule[i][d];
-
-            // 30명 단체 예약
-            groupReservation(movie, 30);
-
-            // 단체 예약 취소 (좌석 초기화)
-            for (int seatNum = 1; seatNum <= 200; seatNum++) {
-                if (findNode(movie->reservationinfo, seatNum)) {
-                    long long int reservationId = reservation(movie, movie->movieId, movie->startTime, movie->date, seatNum);
-                    reservationCancellation(movie, reservationId);
-                }
-            }
-        }
-	}
     return 0;
 }
