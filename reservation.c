@@ -115,7 +115,9 @@ void enqueue(queue* queue, Node* data) {
 		queue->rear = temp;
 	}
 
-	queue->size++;
+	int currentSize = queue->size;
+	currentSize = currentSize + 1;
+	queue->size = currentSize;
 }
 
 Node* dequeue(queue* queue) {
@@ -124,7 +126,9 @@ Node* dequeue(queue* queue) {
 
 	queue->front = temp->next;
 	free(temp);
-	queue->size--;
+	int currentSize = queue->size;
+	currentSize = currentSize - 1;
+	queue->size = currentSize;
 
 	return item;
 }
