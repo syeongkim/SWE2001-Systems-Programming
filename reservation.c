@@ -244,12 +244,7 @@ void RBTreeInsert(RBTree* t, Node* z) {
 	Node* x = t->root;
 	while (x != t->NIL) {
 		y = x;
-		if (z->reservationId < x->reservationId) {
-			x = x->left;
-		}
-		else {
-			x = x->right;
-		}
+		x = z->reservationId < x->reservationId ? x->left : x->right;
 	}
 	z->parent = y;
 	if (y == t->NIL) {
@@ -330,8 +325,7 @@ void RBTreeDeleteFixup(RBTree* t, Node* x) {
 void RBTreeChange(RBTree* t, Node* u, Node* v) {
 	if (u->parent == t->NIL) {
 		t->root = v;
-	}
-	else if (u == u->parent->left) {
+	} else if (u == u->parent->left) {
 		u->parent->left = v;
 	}
 	else {
@@ -347,12 +341,7 @@ Node* RBTreeDelete(RBTree* t, long long int key) {
 	char color;
 
 	while (key != target->reservationId) {
-		if (target->reservationId > key) {
-			target = target->left;
-		}
-		else {
-			target = target->right;
-		}
+		target = target->reservationId > key ? target->left : target->right;
 	}
 	color = target->color;
 
@@ -427,12 +416,8 @@ int findNode(RBTree* t, int value) {
 		int currentSeatNumber = current -> seatNumber;
 		if (value == currentSeatNumber) {
 			return 1;
-		}
-		else if (value < currentSeatNumber) {
-			current = current->left;
-		}
-		else {
-			current = current->right;
+		} else {
+			current = value < currentSeatNumber ? current->left : current->right;
 		}
 	}
 
@@ -445,12 +430,8 @@ long long int findReservationId(RBTree* t, int value) {
 	while (current != t->NIL) {
 		if (value == current->seatNumber) {
 			return current->reservationId;
-		}
-		else if (value < current->seatNumber) {
-			current = current->left;
-		}
-		else {
-			current = current->right;
+		} else {
+			current = value < current->seatNumber ? current->left : current->right;
 		}
 	}
 
