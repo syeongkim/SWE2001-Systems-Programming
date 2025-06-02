@@ -40,6 +40,11 @@ typedef struct queue {
 	int size;
 } queue;
 
+typedef struct ReservedSeatInfo {
+	int seatNumber;
+	long long reservationId;
+} ReservedSeatInfo;
+
 Node* createNode(long long int data) {
 	Node* n = (Node*)malloc(sizeof(Node));
 
@@ -664,12 +669,14 @@ void groupReservation(movieSchedule* movie, int groupSize) {
 	printSeatLayout(movie->reservationinfo);
 }
 
-void collectReservedSeats(Node* root, Node* NIL, int* seats, int* count) {
+void collectReservedSeats(Node* root, Node* NIL, ReservedSeatInfo* infos, int* count) {
 	if (root == NIL) return;
 
-	collectReservedSeats(root->left, NIL, seats, count);
-	seats[(*count)++] = root->seatNumber;
-	collectReservedSeats(root->right, NIL, seats, count);
+	collectReservedSeats(root->left, NIL, infos, count);
+	infos[*count].seatNumber = root->seatNumber;
+	infos[*count].reservationId = root->reservationId;
+	(*count)++;
+	collectReservedSeats(root->right, NIL, infos, count);
 }
 
 int main() {
@@ -711,16 +718,14 @@ int main() {
 
 				groupReservation(movie, j);
 
-				int reservedSeats[200];
+				ReservedSeatInfo reservedInfos[200];
 				int reservedCount = 0;
 
 				// 단체 예약 취소 (좌석 초기화)
-				collectReservedSeats(movie->reservationinfo->root, movie->reservationinfo->NIL, reservedSeats, &reservedCount);
+				collectReservedSeats(movie->reservationinfo->root, movie->reservationinfo->NIL, reservedInfos, &reservedCount);
 
 				for (int i = 0; i < reservedCount; i++) {
-					int seatNum = reservedSeats[i];
-					long long int reservationId = findReservationId(movie->reservationinfo, seatNum);
-					reservationCancellation(movie, reservationId);
+					reservationCancellation(movie, reservedInfos[i].reservationId);
 				}
 			}
 
