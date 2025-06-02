@@ -4,7 +4,6 @@
 #include <time.h>
 
 #define MAX 60
-#define MAX_QUEUE_SIZE 200
 
 typedef struct Node {
 	struct Node* parent;
@@ -46,13 +45,6 @@ typedef struct ReservedSeatInfo {
 	int seatNumber;
 	long long reservationId;
 } ReservedSeatInfo;
-
-typedef struct ArrayQueue  {
-	Node* items[MAX_QUEUE_SIZE];
-	int front;
-	int rear;
-	int size;
-} ArrayQueue;
 
 Node* createNode(long long int data) {
 	Node* n = (Node*)malloc(sizeof(Node));
@@ -106,74 +98,42 @@ queue* createQueue() {
 	return n;
 }
 
-void initQueue(ArrayQueue* q) {
-	q->front = 0;
-	q->rear = -1;
-	q->size = 0;
+int isEmpty(queue* queue) {
+	return queue->size == 0;
 }
-
-int isEmpty(ArrayQueue* q) {
-	return q->size == 0;
-}
-
-int isFull(ArrayQueue* q) {
-	return q->size == MAX_QUEUE_SIZE;
-}
-
-// int isEmpty(queue* queue) {
-// 	return queue->size == 0;
-// }
 
 int getSize(queue* queue) {
 	return queue->size;
 }
 
-// void enqueue(queue* queue, Node* data) {
-// 	queueNode* temp = (queueNode*)malloc(sizeof(queueNode));
+void enqueue(queue* queue, Node* data) {
+	queueNode* temp = (queueNode*)malloc(sizeof(queueNode));
 
-// 	temp->item = data;
-// 	temp->next = NULL;
+	temp->item = data;
+	temp->next = NULL;
 
-// 	if (isEmpty(queue)) {
-// 		queue->front = temp;
-// 		queue->rear = temp;
-// 	}
-// 	else {
-// 		queue->rear->next = temp;
-// 		queue->rear = temp;
-// 	}
-
-// 	queue->size++;
-// }
-
-void enqueue(ArrayQueue* q, Node* item) {
-	if (!isFull(q)) {
-		q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;
-		q->items[q->rear] = item;
-		q->size++;
+	if (isEmpty(queue)) {
+		queue->front = temp;
+		queue->rear = temp;
 	}
+	else {
+		queue->rear->next = temp;
+		queue->rear = temp;
+	}
+
+	queue->size++;
 }
 
-// Node* dequeue(queue* queue) {
-// 	queueNode* temp = queue->front;
-// 	Node* item = temp->item;
+Node* dequeue(queue* queue) {
+	queueNode* temp = queue->front;
+	Node* item = temp->item;
 
-// 	queue->front = temp->next;
-// 	free(temp);
+	queue->front = temp->next;
+	free(temp);
 
-// 	queue->size--;
+	queue->size--;
 
-// 	return item;
-// }
-
-Node* dequeue(ArrayQueue* q) {
-	if (!isEmpty(q)) {
-		Node* item = q->items[q->front];
-		q->front = (q->front + 1) % MAX_QUEUE_SIZE;
-		q->size--;
-		return item;
-	}
-	return NULL;
+	return item;
 }
 
 void leftRotation(RBTree* t, Node* x) {
@@ -425,73 +385,39 @@ Node* RBTreeDelete(RBTree* t, long long int key) {
 	return target;
 }
 
-// void printTree(Node* root) {
-// 	queue* queue = createQueue();
-// 	enqueue(queue, root);
-
-// 	int level = 0;
-
-// 	while (!isEmpty(queue)) {
-// 		int cnt = getSize(queue);
-
-// 		printf("LEVEL %d: ", level + 1);
-// 		for (int i = 0; i < cnt; i++) {
-// 			Node* current = dequeue(queue);
-
-// 			if (current->reservationId != -1) {
-// 				if (current->color == 'B') {
-// 					printf("%2lld ", current->reservationId);
-// 				}
-// 				else {
-// 					printf("\033[31m%2lld \033[0m", current->reservationId);
-// 				}
-// 			}
-
-// 			if (current->left != NULL) {
-// 				enqueue(queue, current->left);
-// 			}
-
-// 			if (current->left != NULL) {
-// 				enqueue(queue, current->right);
-// 			}
-// 		}
-// 		level++;
-// 		printf("\n");
-// 	}
-// }
-
 void printTree(Node* root) {
-    ArrayQueue queue;
-    initQueue(&queue);
-    enqueue(&queue, root);
+	queue* queue = createQueue();
+	enqueue(queue, root);
 
-    int level = 0;
+	int level = 0;
 
-    while (!isEmpty(&queue)) {
-        int cnt = queue.size;
+	while (!isEmpty(queue)) {
+		int cnt = getSize(queue);
 
-        printf("LEVEL %d: ", level + 1);
-        for (int i = 0; i < cnt; i++) {
-            Node* current = dequeue(&queue);
+		printf("LEVEL %d: ", level + 1);
+		for (int i = 0; i < cnt; i++) {
+			Node* current = dequeue(queue);
 
-            if (current->reservationId != -1) {
-                if (current->color == 'B') {
-                    printf("%2lld ", current->reservationId);
-                } else {
-                    printf("\033[31m%2lld \033[0m", current->reservationId);
-                }
-            }
+			if (current->reservationId != -1) {
+				if (current->color == 'B') {
+					printf("%2lld ", current->reservationId);
+				}
+				else {
+					printf("\033[31m%2lld \033[0m", current->reservationId);
+				}
+			}
 
-            if (current->left != NULL) {
-                enqueue(&queue, current->left);
-            }
-            if (current->right != NULL) {
-                enqueue(&queue, current->right);
-            }
-        }
-        level++;
-        printf("\n");
-    }
+			if (current->left != NULL) {
+				enqueue(queue, current->left);
+			}
+
+			if (current->left != NULL) {
+				enqueue(queue, current->right);
+			}
+		}
+		level++;
+		printf("\n");
+	}
 }
 
 int findNode(RBTree* t, int value) {
