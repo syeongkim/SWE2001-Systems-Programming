@@ -390,20 +390,23 @@ void printTree(Node* root) {
 	enqueue(queue, root);
 
 	int level = 0;
+	char lineBuffer[4096];
 
 	while (!isEmpty(queue)) {
 		int cnt = getSize(queue);
 
-		printf("LEVEL %d: ", level + 1);
+		int offset = 0;
+		offset += sprintf(lineBuffer + offset, "LEVEL %d: ", level + 1);
+
 		for (int i = 0; i < cnt; i++) {
 			Node* current = dequeue(queue);
 
 			if (current->reservationId != -1) {
 				if (current->color == 'B') {
-					printf("%2lld ", current->reservationId);
+					offset += sprintf(lineBuffer + offset, "%2lld ", current->reservationId);
 				}
 				else {
-					printf("\033[31m%2lld \033[0m", current->reservationId);
+					offset += sprintf(lineBuffer + offset, "\033[31m%2lld \033[0m", current->reservationId);
 				}
 			}
 
@@ -415,8 +418,9 @@ void printTree(Node* root) {
 				enqueue(queue, current->right);
 			}
 		}
+		sprintf(lineBuffer + offset, "\n");
+		printf("%s", lineBuffer);
 		level++;
-		printf("\n");
 	}
 }
 
