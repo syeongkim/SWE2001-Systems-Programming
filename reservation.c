@@ -505,7 +505,7 @@ movieSchedule*** makeMovieSchedule(int num, int day) {
 	return movieList;
 }
 
-void printSeatLayout(RBTree* t) {
+void printSeatLayout(movieSchedule* movie) {
 	printf("---------------SEAT LAYOUT---------------\n");
 	for (int i = 0; i < 20; i++) {
 		printf("|");
@@ -516,8 +516,9 @@ void printSeatLayout(RBTree* t) {
 		printf("\n");
 		printf("|");
 		for (int j = 0; j < 10; j++) {
+			int seatIdx = i * 10 + j;
 			// if the seat is occupied, print "X"
-			if (findNode(t, i * 10 + j + 1) == 1) {
+			if (movie->seatStatus[seatIdx]) {
 				printf(" X ");
 				printf("|");
 			}
@@ -568,7 +569,7 @@ void printMovieSchedule(movieSchedule*** matrix, int num, int day) {
 			printf("Day: %s\n", temp->date);
 			printf("Start Time: %s\n", temp->startTime);
 			printf("Movie ID: %d\n", temp->movieId);
-			printSeatLayout(temp->reservationinfo);
+			printSeatLayout(temp);
 		}
 	}
 }
@@ -620,7 +621,7 @@ void reservationCancellation(movieSchedule* movie, long long int reservationId) 
 	printf("***Your reservation is cancelled successfully!***\n");
 	printf("Cancelled Reservation Id: %lld\n", reservationId);
 	printTree(movie->reservationinfo->root);
-	printSeatLayout(movie->reservationinfo);
+	printSeatLayout(movie);
 }
 
 void groupReservation(movieSchedule* movie, int groupSize) {
@@ -673,7 +674,7 @@ void groupReservation(movieSchedule* movie, int groupSize) {
         }
     }
 
-	printSeatLayout(movie->reservationinfo);
+	printSeatLayout(movie);
 }
 
 void collectReservedSeats(Node* root, Node* NIL, ReservedSeatInfo* infos, int* count) {
