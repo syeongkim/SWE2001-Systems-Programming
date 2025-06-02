@@ -27,6 +27,7 @@ typedef struct movieSchedule {
 	char* startTime;
 	char* date;
 	RBTree* reservationinfo;
+	int seatStatus[200];
 } movieSchedule;
 
 typedef struct queueNode {
@@ -342,7 +343,7 @@ void RBTreeChange(RBTree* t, Node* u, Node* v) {
 	v->parent = u->parent;
 }
 
-void RBTreeDelete(RBTree* t, long long int key) {
+Node* RBTreeDelete(RBTree* t, long long int key) {
 	Node* target = t->root;
 	Node* temp = NULL;
 	Node* x = NULL;
@@ -384,7 +385,7 @@ void RBTreeDelete(RBTree* t, long long int key) {
 	if (color == 'B') {
 		RBTreeDeleteFixup(t, x);
 	}
-	free(target);
+	return target;
 }
 
 void printTree(Node* root) {
@@ -602,13 +603,19 @@ long long int reservation(movieSchedule* movie, int movieId, char startTime[], c
 
 	// insert new reservation information to rbtree
 	RBTreeInsert(movie->reservationinfo, new);
+	movie->seatStatus[seatNumber-1] = 1;
 
 	return reservationId;
 }
 
 void reservationCancellation(movieSchedule* movie, long long int reservationId) {
 	// delete reservation node from rbtree
-	RBTreeDelete(movie->reservationinfo, reservationId);
+	Node* deletedNode = RBTreeDelete(movie->reservationinfo, reservationId);
+	if (deletedNode != NULL) {
+		int seatIdx = deletedNode->seatNumber - 1;
+		movie->seatStatus[seatIdx] = 0;
+		free(deletedNode);
+	}
 	// print reservation cancellation information and updates seat layout
 	printf("***Your reservation is cancelled successfully!***\n");
 	printf("Cancelled Reservation Id: %lld\n", reservationId);
